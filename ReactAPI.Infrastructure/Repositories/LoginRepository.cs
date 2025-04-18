@@ -2,8 +2,6 @@
 using ReactAPI.Core.Interfaces;
 using ReactAPI.Core.Models;
 using ReactAPI.Infrastructure.Data;
-using System;
-using System.Threading.Tasks;
 
 namespace ReactAPI.Infrastructure.Repositories
 {
@@ -19,7 +17,7 @@ namespace ReactAPI.Infrastructure.Repositories
         public async Task<string> AuthenticateAsync(LoginRequest loginRequest)
         {
             var user = await _context.Registers
-                .FirstOrDefaultAsync(u => u.Username == loginRequest.Username && u.Password == loginRequest.Password);
+                .FirstOrDefaultAsync(u => u.Email == loginRequest.Username && u.Password == loginRequest.Password);
 
             if (user == null)
             {
