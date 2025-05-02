@@ -29,6 +29,7 @@ builder.Services.AddScoped<IBookingRepository, BookingRepository>(); // Add this
 builder.Services.AddScoped<ILoginRepository, LoginRepository>();
 builder.Services.AddScoped<IRegisterRepository, RegisterRepository>();
 builder.Services.AddScoped<ISlotRepository, SlotRepository>();
+builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 
 // Register Services
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
@@ -36,6 +37,7 @@ builder.Services.AddScoped<IBookingService, BookingService>(); // Add this line
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<IRegisterService, RegisterService>();
 builder.Services.AddScoped<ISlotService, SlotService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

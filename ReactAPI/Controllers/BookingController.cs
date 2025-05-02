@@ -1,8 +1,7 @@
 ﻿using ReactAPI.Core.Models;
 using ReactAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
 
 namespace EmployeeAPI.Controllers
 {
