@@ -25,12 +25,52 @@ namespace ReactAPI.Infrastructure.Repositories
 
             return groups;
         }
-            public async Task<List<PermissionTreeNode>> GetPermissionTreeAsync(int groupId)
+        public async Task<List<PermissionActions>> GetPermissions(int groupId)
+        {
+            var result = from g in _context.GroupPermissions
+                         join a in _context.Actions on g.ActionId equals a.ActionId into actionGroup
+                         from a in actionGroup.DefaultIfEmpty()
+                         select new PermissionActions
+                         {
+                             GroupId=g.GroupId,
+                             MenuId=g.MenuId,
+                             ActionId = g.ActionId,  // Explicitly from GroupPermissions
+                             ActionName = a.ActionName // From Actions (nullable due to left join)
+                         };
+
+             return (List<PermissionActions>)result;
+        }
+        public async Task<List<PermissionActions>> GetPermissionTreeAsync(int groupId)
+        {
+           
+                var query = _context.GroupPermissions
+                .Where(g => g.GroupId == groupId)  // Filter added here
+                    .GroupJoin(
+                        _context.Actions,
+                        g => g.ActionId,
+                        a => a.ActionId,
+                        (g, actionGroup) => new { g, actionGroup }
+                    )
+                    .SelectMany(
+                        x => x.actionGroup.DefaultIfEmpty(),
+                        (x, a) => new PermissionActions
+                        {
+                            GroupId = x.g.GroupId,
+                            MenuId = x.g.MenuId,
+                            ActionId = x.g.ActionId,
+                            ActionName =a.ActionName
+                        }
+                    );
+
+                return await query.ToListAsync();
+          
+        }
+        public async Task<List<PermissionTreeNode>> GetPermissionTree(int groupId)
         {
             var menus = await _context.Menus.ToListAsync();
             var actions = await _context.Actions.ToListAsync();
             var groupPermissions = await _context.GroupPermissions
-                .Where(gp => gp.GroupId == groupId)
+                //.Where(gp => gp.GroupId == groupId)
                 .ToListAsync();
 
             List<PermissionTreeNode> BuildTree(int? parentId)
@@ -52,6 +92,43 @@ namespace ReactAPI.Infrastructure.Repositories
             }
 
             return BuildTree(null);
+        }
+
+        public async Task<List<MenuActionDto>> GetMenuTreeAsync()
+        {
+            var menus = await _context.Menus.ToListAsync();
+            var actions = await _context.Actions.ToListAsync(); // Optional: link to specific menus in real case
+
+            var menuDtos = menus.Select(m => new MenuActionDto
+            {
+                MenuId = m.MenuId,
+                MenuName = m.MenuName,
+                ParentMenuId = m.ParentMenuId,
+                Route = m.Route,
+                Actions = actions.Select(a => new ActionDto
+                {
+                    ActionId = a.ActionId,
+                    ActionName = a.ActionName
+                }).ToList()
+                //Actions = actions.Select(a => a.ActionName).ToList() // Demo: attach all actions to all menus
+            }).ToList();
+
+            return BuildTree(menuDtos, null);
+        }
+
+        private List<MenuActionDto> BuildTree(List<MenuActionDto> allMenus, int? parentId)
+        {
+            return allMenus
+                .Where(m => m.ParentMenuId == parentId)
+                .Select(m => new MenuActionDto
+                {
+                    MenuId = m.MenuId,
+                    MenuName = m.MenuName,
+                    ParentMenuId = m.ParentMenuId,
+                    Route = m.Route,
+                    Actions = m.Actions,
+                    Children = BuildTree(allMenus, m.MenuId)
+                }).ToList();
         }
 
         public async Task SavePermissionsAsync(int groupId, List<PermissionAction> permissions)

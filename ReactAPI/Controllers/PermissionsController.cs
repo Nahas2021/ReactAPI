@@ -14,7 +14,12 @@ namespace ReactAPI.Controllers
         {
             _permissionService = permissionService;
         }
-
+        [HttpGet("menu-tree")]
+        public async Task<IActionResult> GetMenuTree()
+        {
+            var tree = await _permissionService.GetMenuTreeAsync();
+            return Ok(tree);
+        }
         [HttpGet("tree")]
         public async Task<IActionResult> GetPermissionTree([FromQuery] int groupId)
         {
