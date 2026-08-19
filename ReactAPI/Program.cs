@@ -54,6 +54,14 @@ builder.Services.AddSwaggerGen(c =>
 
 
 var app = builder.Build();
+
+// Apply database migrations automatically
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<EmployeeContext>();
+    dbContext.Database.Migrate();
+}
+
 app.UseStaticFiles();
 if (app.Environment.IsDevelopment())
 {
